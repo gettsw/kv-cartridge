@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kv-cartridge"
 version = "0.1.0"
-description = "Ahead-of-Time (AOT) Key-Value Cartridge Engine for LLM Agents: zero-token procedural habit mounting via deferred RoPE splicing."
+description = "Turn AGENTS.md and SKILL.md into compiled binary tensor files (.safetensors) for LLMs: zero prompt tokens, 15-microsecond mounting, and dynamic skill hot-swapping."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
@@ -14,12 +14,15 @@ authors = [
 ]
 keywords = [
     "llm",
+    "ai-agents",
+    "agents-md",
+    "skills-md",
+    "prompt-compiler",
     "kv-cache",
     "inference",
     "rope",
     "transformers",
     "safetensors",
-    "ai-agents",
     "amd-rocm",
     "mi300x"
 ]

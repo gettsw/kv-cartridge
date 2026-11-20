@@ -12,19 +12,29 @@ from kv_cartridge.engine import (
     get_rotary_emb,
     rotate_half,
 )
+from kv_cartridge.markdown import (
+    AgentSpec,
+    SkillSpec,
+    parse_agent_markdown,
+    parse_skill_markdown,
+)
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "AgentSpec",
     "CartridgeCompiler",
     "CartridgeMetadata",
     "CartridgeRuntime",
     "KVCartridge",
     "SAFETENSORS_FORMAT",
+    "SkillSpec",
     "apply_rotary_pos_emb",
     "get_generation_close_text",
     "get_model_layers",
     "get_rotary_emb",
+    "parse_agent_markdown",
+    "parse_skill_markdown",
     "rotate_half",
     "__version__",
 ]

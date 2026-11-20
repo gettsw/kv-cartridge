@@ -45,8 +45,18 @@ def apply_rotary_pos_emb(
     return q_embed, k_embed
 
 
+def unwrap_model(model: torch.nn.Module) -> torch.nn.Module:
+    """Unwraps PEFT or container models to reach the underlying causal LM."""
+    if hasattr(model, "get_base_model"):
+        return model.get_base_model()
+    if hasattr(model, "base_model") and hasattr(model.base_model, "model"):
+        return model.base_model.model
+    return model
+
+
 def get_model_layers(model: torch.nn.Module) -> torch.nn.ModuleList:
-    """Locates transformer layers across diverse causal LM architectures."""
+    """Locates transformer layers across diverse causal LM architectures (including PEFT models)."""
+    model = unwrap_model(model)
     if hasattr(model, "model") and hasattr(model.model, "layers"):
         return model.model.layers
     if hasattr(model, "transformer") and hasattr(model.transformer, "h"):
@@ -58,6 +68,7 @@ def get_model_layers(model: torch.nn.Module) -> torch.nn.ModuleList:
 
 def get_rotary_emb(model: torch.nn.Module) -> torch.nn.Module:
     """Locates the rotary position embedding module."""
+    model = unwrap_model(model)
     if hasattr(model, "model") and hasattr(model.model, "rotary_emb"):
         return model.model.rotary_emb
     if hasattr(model, "rotary_emb"):
@@ -103,6 +114,7 @@ class CartridgeMetadata:
     virtual_token_length: int
     file_size_kb: float = 0.0
     format: str = SAFETENSORS_FORMAT
+    cartridge_type: str = "generic"
 
 
 class KVCartridge:
@@ -149,6 +161,7 @@ class KVCartridge:
             "num_kv_heads": str(m.num_kv_heads),
             "head_dim": str(m.head_dim),
             "virtual_token_length": str(m.virtual_token_length),
+            "cartridge_type": getattr(m, "cartridge_type", "generic"),
             "sha256": _content_sha256(k_cpu, v_cpu),
         }
 
@@ -206,6 +219,7 @@ class KVCartridge:
             virtual_token_length=vtl,
             file_size_kb=round(os.path.getsize(filepath) / 1024, 1),
             format=SAFETENSORS_FORMAT,
+            cartridge_type=header.get("cartridge_type", "generic"),
         )
         return cls(metadata, k_raw, v_slice)
 
@@ -252,6 +266,7 @@ class CartridgeCompiler:
         instruction_text: str,
         description: str = "",
         carrier_context: str = "A store has 15 red balls and 25 blue balls. How many balls in total?\nPlease reason step by step, and put your final answer within \\boxed{}.",
+        cartridge_type: str = "generic",
     ) -> KVCartridge:
         """Compiles instruction text into a portable pre-RoPE KV cartridge."""
         tok = self.tokenizer
@@ -289,9 +304,52 @@ class CartridgeCompiler:
             num_kv_heads=num_kv_heads,
             head_dim=head_dim,
             virtual_token_length=L_instr,
+            cartridge_type=cartridge_type,
         )
 
         return KVCartridge(metadata, k_raw, v_slice)
+
+    def compile_agent(
+        self,
+        source: Union[str, Path, Any],
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> KVCartridge:
+        """Compiles an AGENTS.md, CLAUDE.md, or agent specification into a binary .safetensors cartridge."""
+        from kv_cartridge.markdown import AgentSpec, parse_agent_markdown
+
+        if isinstance(source, AgentSpec):
+            spec = source
+        else:
+            spec = parse_agent_markdown(source, name=name)
+
+        return self.compile(
+            name=name or spec.name,
+            instruction_text=spec.instruction_text,
+            description=description or spec.description,
+            cartridge_type="agent",
+        )
+
+    def compile_skill(
+        self,
+        source: Union[str, Path, Any],
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> KVCartridge:
+        """Compiles a SKILL.md markdown specification into a binary .safetensors cartridge."""
+        from kv_cartridge.markdown import SkillSpec, parse_skill_markdown
+
+        if isinstance(source, SkillSpec):
+            spec = source
+        else:
+            spec = parse_skill_markdown(source, name=name)
+
+        return self.compile(
+            name=name or spec.name,
+            instruction_text=spec.procedure_text,
+            description=description or spec.description,
+            cartridge_type="skill",
+        )
 
     def capture_pre_rope_kv(
         self, input_ids: torch.Tensor, start_idx: int, end_idx: int
@@ -335,6 +393,50 @@ class CartridgeRuntime:
         self.tokenizer = tokenizer
         self.device = device
         self.active_cartridges: List[KVCartridge] = []
+        self.active_agent: Optional[KVCartridge] = None
+        self.active_skills: List[KVCartridge] = []
+
+    def _sync_cartridges(self) -> None:
+        """Internal helper to synchronize active_cartridges from active_agent and active_skills."""
+        ordered = []
+        if self.active_agent is not None:
+            ordered.append(self.active_agent)
+        ordered.extend(self.active_skills)
+        self.mount_multiple(ordered)
+
+    def mount_agent(self, cartridge: KVCartridge) -> None:
+        """Mounts an agent behavioral cartridge into working memory (placed first in prompt order)."""
+        self.active_agent = cartridge
+        self._sync_cartridges()
+
+    def dismount_agent(self) -> None:
+        """Dismounts the active agent cartridge."""
+        self.active_agent = None
+        self._sync_cartridges()
+
+    def mount_skill(self, cartridge: KVCartridge) -> None:
+        """Mounts a skill cartridge into active working memory, hot-swapping any existing skill of the same name."""
+        self.active_skills = [s for s in self.active_skills if s.metadata.name != cartridge.metadata.name]
+        self.active_skills.append(cartridge)
+        self._sync_cartridges()
+
+    def dismount_skill(self, name: str) -> bool:
+        """Dismounts a specific active skill cartridge by name."""
+        initial_len = len(self.active_skills)
+        self.active_skills = [s for s in self.active_skills if s.metadata.name != name]
+        if len(self.active_skills) != initial_len:
+            self._sync_cartridges()
+            return True
+        return False
+
+    def list_mounted(self) -> Dict[str, Any]:
+        """Returns diagnostic summary of all mounted agents, skills, and total virtual tokens."""
+        return {
+            "agent": self.active_agent.metadata.name if self.active_agent else None,
+            "skills": [s.metadata.name for s in self.active_skills],
+            "total_cartridges": len(self.active_cartridges),
+            "total_virtual_tokens": sum(c.metadata.virtual_token_length for c in self.active_cartridges),
+        }
 
     def mount(self, cartridge: KVCartridge) -> None:
         """Mounts a single cartridge into active memory."""
@@ -365,6 +467,8 @@ class CartridgeRuntime:
     def dismount(self) -> None:
         """Dismounts all active cartridges, returning model to clean base state."""
         self.active_cartridges = []
+        self.active_agent = None
+        self.active_skills = []
 
     def deferred_rope(self, k_raw: torch.Tensor, offset: int) -> torch.Tensor:
         """Rotates raw key tensor to target sequence positions [offset, offset + L)."""
