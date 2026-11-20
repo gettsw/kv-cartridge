@@ -8,6 +8,11 @@
 
 Compile `AGENTS.md` instructions and `SKILL.md` procedures into portable, binary `.safetensors` Key-Value cartridges. Mount them into LLM working memory in **15 microseconds** with **zero prompt tokens**, reducing prefill compute by **80% to 98%** while preserving 100% procedural rule adherence.
 
+> **Deployment Requirements & Compatibility Notice:**  
+> KV-Cartridge operates directly at the **transformer activation memory layer** by dynamically splicing pre-computed Key-Value activation states into the model's working KV cache.  
+> * **Supported Deployments**: Requires an inference engine with **direct model memory access** (e.g., self-hosted PyTorch, vLLM, SGLang, local workstation GPUs, or dedicated private cloud/enterprise clusters running open-weight models such as Qwen, Llama, Mistral, and Nemotron).  
+> * **Incompatible Deployments**: Will **not work with closed, third-party commercial API endpoints** (such as `api.openai.com` or `api.anthropic.com`), as black-box SaaS providers do not expose internal KV memory buffers or allow activation cache injection.
+
 ---
 
 ## The Problem: Markdown Prompt Overhead in AI Agents
@@ -64,6 +69,21 @@ Evaluated in native `bfloat16` across leading open-weight model architectures:
 | **`Qwen/Qwen2.5-72B-Instruct`** | 72 Billion | 0.0% | 100.0% | **100.0%** | **-79.0%** | **59 ms** |
 | **`nvidia/Llama-3.1-Nemotron-70B-Instruct-HF`** | 70 Billion | 0.0% | 100.0% | **100.0%** | **-79.7%** | **63 ms** |
 | **`deepseek-ai/DeepSeek-R1-Distill-Qwen-32B`** | 32 Billion | 0.0% | 100.0% | **100.0%** | **-78.1%** | **58 ms** |
+
+---
+
+## Memory Access & Supported Environments
+
+Because KV-Cartridge operates by splicing activation tensors directly into the attention mechanism, the hosting service or application must have **direct access to the model's memory space**:
+
+| Environment Type | Compatibility | Deployment Characteristics |
+| :--- | :---: | :--- |
+| **Local Developer Workstations** | **Supported** | Local GPUs (NVIDIA RTX, AMD Radeon) or CPU environments running standard PyTorch / Hugging Face. |
+| **Self-Hosted Cloud Instances** | **Supported** | Dedicated VMs (RunPod, Lambda, AWS, GCP, DigitalOcean) running open-weight model architectures. |
+| **Enterprise Private Clusters** | **Supported** | Private VPCs and on-premise clusters running dedicated inference engines (vLLM, SGLang, TGI). |
+| **Commercial SaaS APIs** | **Not Supported** | Closed endpoints (`api.openai.com`, `api.anthropic.com`) do not expose internal KV memory buffers. |
+
+---
 
 ---
 
