@@ -1,4 +1,4 @@
-# ⚡ KV-Cartridge: Turn `AGENTS.md` & `SKILL.md` into Compiled Tensor Files (`.safetensors`)
+# KV-Cartridge: Turn `AGENTS.md` and `SKILL.md` into Compiled Tensor Files (`.safetensors`)
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-brightgreen.svg)]()
@@ -6,84 +6,83 @@
 [![Format](https://img.shields.io/badge/Format-safetensors--v2-purple.svg)]()
 [![Patent](https://img.shields.io/badge/Status-Patent%20Pending-orange.svg)]()
 
-> **Stop paying the prompt token tax on every agent turn.**  
-> Compile your `AGENTS.md` rules and `SKILL.md` workflows into portable, binary `.safetensors` Key-Value cartridges. Mount them into working memory in **15 microseconds** with **zero prompt tokens**, slashing prefill compute by **80%–98%** while guaranteeing 100% procedural rule adherence.
+Compile `AGENTS.md` instructions and `SKILL.md` procedures into portable, binary `.safetensors` Key-Value cartridges. Mount them into LLM working memory in **15 microseconds** with **zero prompt tokens**, reducing prefill compute by **80% to 98%** while preserving 100% procedural rule adherence.
 
 ---
 
-## 💡 The Problem: Markdown Prompt Bloat in Modern AI Agents
+## The Problem: Markdown Prompt Overhead in AI Agents
 
-Every modern autonomous coding and agentic framework—from **Cursor**, **Goose**, and **Claude Code** to **Windsurf**, **Copilot**, and **LangChain**—relies on markdown files:
-* `AGENTS.md` / `CLAUDE.md`: 1,000 to 3,000 tokens of project rules, architecture patterns, and constraints.
-* `SKILL.md` / `TOOLS.md`: 300 to 1,500 tokens of step-by-step procedures, schemas, and guidelines per skill.
+Modern autonomous coding systems and agent frameworks (including Cursor, Goose, Claude Code, Windsurf, Copilot, and LangChain) depend on structured markdown files for configuration:
+* `AGENTS.md` / `CLAUDE.md`: 1,000 to 3,000 tokens of repository rules, architecture guidelines, and constraints.
+* `SKILL.md` / `TOOLS.md`: 300 to 1,500 tokens of step-by-step procedures and tool call schemas per skill.
 
-On **every single turn** of an agent loop, these markdown strings are crammed back into the prompt:
-1. 💸 **Massive Token Waste:** Over 80% of all tokens billed in an agent workflow are spent re-reading identical static markdown rules over and over.
-2. ⏳ **High TTFT Latency:** Every turn forces the GPU to re-tokenize, project, and compute attention over thousands of static prompt tokens before generating a single character.
-3. 📉 **Attention Decay ("Lost-in-the-Middle"):** As conversational context grows, the LLM suffers attention dilution and begins violating instructions defined in `AGENTS.md`.
+On **every single turn** of an agent interaction loop, these static markdown strings are repeatedly passed into the model's context window:
+1. **Compute and Cost Redundancy**: Up to 80%–95% of tokens processed across multi-turn agent sessions are spent re-reading unchanged markdown files.
+2. **Time-to-First-Token (TTFT) Latency**: The inference engine must re-tokenize, project, and compute self-attention over thousands of static tokens before generating output.
+3. **Attention Degradation ("Lost-in-the-Middle")**: As the conversational history expands, the model's attention over early prompt instructions diminishes, leading to rule violations.
 
 ---
 
-## 🚀 The Solution: Compiled Neural Shared Libraries (`.safetensors`)
+## The Solution: Ahead-of-Time Compiled Neural Libraries
 
-In software engineering, we don't re-interpret 50,000 lines of C headers on every function call—we compile code once into shared libraries (`.so` / `.dll`).
+Traditional software engineering does not re-interpret source code headers on every execution cycle; source is compiled into shared libraries (`.so` / `.dll`).
 
-**KV-Cartridge brings Ahead-of-Time (AOT) compilation to LLM instructions:**
-Instead of passing raw markdown text strings on every turn, you compile `AGENTS.md` and `SKILL.md` once into binary `.safetensors` Key-Value tensor files. At runtime, the LLM virtually splices them into its attention cache in **15 microseconds**.
+**KV-Cartridge applies Ahead-of-Time (AOT) compilation to agent instructions:**
+Instead of submitting raw markdown text strings on every API call, `AGENTS.md` and `SKILL.md` files are compiled once into binary `.safetensors` Key-Value activation files. At runtime, the model virtually splices the pre-computed activation states into its Key-Value cache in **15 microseconds**.
 
 ```
-Traditional Prompting (Raw Markdown Interpreted Every Turn):
-┌──────────────────────────────────────────────────────────┬────────────────────────┐
-│ AGENTS.md (1,500 toks) + SKILL.md (800 toks)             │ User Query (40 toks)   │
-└──────────────────────────────────────────────────────────┴────────────────────────┘
-  ──► GPU Prefills 2,340 tokens on EVERY turn (Slow TTFT, High Cost, Attention Decay)
+Traditional In-Context Prompting (Recomputed Every Turn):
++----------------------------------------------------------+------------------------+
+| AGENTS.md (1,500 tokens) + SKILL.md (800 tokens)         | User Query (40 tokens) |
++----------------------------------------------------------+------------------------+
+  --> Engine prefills 2,340 tokens on EVERY turn (High latency, high cost, attention decay)
 
 KV-Cartridge (Compiled Binary Tensor Mounting):
-┌────────────────────────┐  ◄── [ Mounted agent.safetensors (15 µs) ]
-│ User Query (40 toks)   │  ◄── [ Mounted skill.safetensors (15 µs) ]
-└────────────────────────┘
-  ──► GPU Prefills ONLY 40 tokens (-98% Tokens, Zero Prompt Overhead, 100% Retention)
++------------------------+  <-- [ Mounted agent.safetensors (15 us) ]
+| User Query (40 tokens) |  <-- [ Mounted skill.safetensors (15 us) ]
++------------------------+
+  --> Engine prefills ONLY 40 tokens (-98% prompt tokens, zero markdown overhead)
 ```
 
 ---
 
-## 📊 Empirical Benchmarks
+## Empirical Benchmarks
 
-### 1. Real-World Developer Workflows (NVIDIA RTX 4070 Laptop GPU)
-Tested with production markdown files using `Qwen/Qwen2.5-3B-Instruct`:
+### 1. Developer Agent Workflows (NVIDIA GeForce RTX 4070 Laptop GPU)
+Evaluated with production agent markdown files on `Qwen/Qwen2.5-3B-Instruct`:
 
-| Target Source | Token Size | Compilation Time | Cartridge Size | **Prefill Token Reduction** | Rule Adherence |
+| Target Specification | Token Size | Compilation Time | Cartridge Size | Prefill Token Reduction | Procedural Rule Retention |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`Goose AGENTS.md`** | 1,397 tokens | **1,054 ms** | 50.3 MB | **-98.8%** | **100.0%** (Strict Repo Rules Retained) |
-| **`review-changes/SKILL.md`** | 276 tokens | **92.9 ms** | 9.9 MB | **-85.2%** | **100.0%** (Instant Tool Invocation) |
+| **Goose `AGENTS.md`** | 1,397 tokens | **1,054 ms** | 50.3 MB | **-98.8%** | **100.0%** (Strict Repo Rules Preserved) |
+| **`review-changes/SKILL.md`** | 276 tokens | **92.9 ms** | 9.9 MB | **-85.2%** | **100.0%** (Immediate Tool Dispatch) |
 
 ### 2. Enterprise Scaling Benchmarks (AMD Instinct MI300X 192GB HBM3)
-Tested in native `bfloat16` across leading open-weight LLMs:
+Evaluated in native `bfloat16` across leading open-weight model architectures:
 
-| Model Architecture | Parameter Scale | Base Retention | In-Context Prompt | **KV-Cartridge Retention** | **Prefill Token Reduction** | **Compilation Time** |
+| Model Architecture | Parameter Scale | Base Model | In-Context Baseline | KV-Cartridge | Prefill Reduction | Compilation Latency |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`Qwen/Qwen2.5-72B-Instruct`** | **72 Billion** | 0.0% | 100.0% | **100.0%** | **-79.0%** | **59 ms** |
-| **`nvidia/Llama-3.1-Nemotron-70B-Instruct-HF`** | **70 Billion** | 0.0% | 100.0% | **100.0%** | **-79.7%** | **63 ms** |
-| **`deepseek-ai/DeepSeek-R1-Distill-Qwen-32B`** | **32 Billion** | 0.0% | 100.0% | **100.0%** | **-78.1%** | **58 ms** |
+| **`Qwen/Qwen2.5-72B-Instruct`** | 72 Billion | 0.0% | 100.0% | **100.0%** | **-79.0%** | **59 ms** |
+| **`nvidia/Llama-3.1-Nemotron-70B-Instruct-HF`** | 70 Billion | 0.0% | 100.0% | **100.0%** | **-79.7%** | **63 ms** |
+| **`deepseek-ai/DeepSeek-R1-Distill-Qwen-32B`** | 32 Billion | 0.0% | 100.0% | **100.0%** | **-78.1%** | **58 ms** |
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ```bash
-git clone https://github.com/continuous-learning/kv-cartridge.git
+git clone https://github.com/gettsw/kv-cartridge.git
 cd kv-cartridge
 pip install -e .
 ```
 
-Verify your installation with the mathematical CPU invariance test (<1 second, no GPU or downloads needed):
+Verify your installation with the CPU mathematical invariance test (completes in <1 second with no GPU required):
 ```bash
 cartridge test
 ```
 
 ---
 
-## ⚡ 60-Second Quickstart
+## Quickstart
 
 ### 1. Compile `AGENTS.md` into a Binary Tensor File
 ```bash
@@ -95,7 +94,7 @@ cartridge compile-agent AGENTS.md --model Qwen/Qwen2.5-3B-Instruct --out senior_
 cartridge compile-skill git_review.skill.md --model Qwen/Qwen2.5-3B-Instruct --out review.safetensors
 ```
 
-### 3. Inspect the Compiled Binary Cartridges
+### 3. Inspect the Compiled Binary Cartridge
 ```bash
 cartridge inspect senior_dev.safetensors
 ```
@@ -116,7 +115,7 @@ KV-CARTRIDGE INSPECTION: senior_dev.safetensors
 ============================================================
 ```
 
-### 4. Run Inference with 0 Prompt Tokens
+### 4. Execute Inference with Zero Prompt Tokens
 ```bash
 cartridge run \
   --model Qwen/Qwen2.5-3B-Instruct \
@@ -127,94 +126,105 @@ cartridge run \
 
 ---
 
-## 🐍 Python SDK: Hot-Mounting & Dynamic Skill Swapping
+## Python SDK: Dynamic Mounting and Skill Hot-Swapping
 
-Build autonomous agents that mount rules and switch skills at runtime in **15 microseconds**:
+Autonomous agents can mount guidelines and switch specialized skills dynamically at runtime in **15 microseconds**:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from kv_cartridge import CartridgeCompiler, CartridgeRuntime, KVCartridge
 
-# 1. Load base model
+# 1. Load target base model
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-3B-Instruct")
 model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-3B-Instruct", device_map="auto")
 
-# 2. Compile AGENTS.md and SKILL.md (or load existing pre-compiled binaries)
+# 2. Compile specifications (or load existing pre-compiled .safetensors binaries)
 compiler = CartridgeCompiler(model, tokenizer)
 agent_cartridge = compiler.compile_agent("AGENTS.md")
 review_cartridge = compiler.compile_skill("skills/git_review.skill.md")
 db_cartridge = compiler.compile_skill("skills/db_migration.skill.md")
 
-# 3. Mount Agent and Review Skill (15 microseconds!)
+# 3. Mount Agent and Skill into active working memory (15 microseconds)
 runtime = CartridgeRuntime(model, tokenizer)
 runtime.mount_agent(agent_cartridge)
 runtime.mount_skill(review_cartridge)
 
-# 4. Generate with ZERO prompt tokens for AGENTS.md or SKILL.md!
+# 4. Generate with zero prompt tokens for AGENTS.md or SKILL.md
 response = runtime.generate("Check this diff: + if token == 'admin': return True")
 print(response)
 
-# 5. Dynamic Hot-Swap: Switch skills instantly without reloading weights
+# 5. Dynamic Hot-Swap: Switch skills at runtime without reloading model weights
 runtime.dismount_skill("git-code-reviewer")
-runtime.mount_skill(db_cartridge) # Swapped in 15 µs!
+runtime.mount_skill(db_cartridge)
 ```
 
 ---
 
-## 🔬 How It Works: The Math Behind Deferred-RoPE
+## Mechanism: Deferred Rotary Position Embedding (Deferred-RoPE)
 
-Standard prompt caching breaks when you move or chain prompts because Rotary Position Embeddings (RoPE) bake absolute token positions directly into Key tensors:
-$$\mathbf{K}_{\text{baked}} = \mathbf{R}(\text{pos}) \cdot (\mathbf{X} \mathbf{W}_K)$$
+Standard Key-Value prefix caching fails when repositioning or composing prompts because Rotary Position Embeddings (RoPE) bind absolute sequence positions directly into Key tensors:
 
-If you change the prefix length or chain multiple skills, attention dot products $\mathbf{Q} \mathbf{K}^T$ are distorted, producing garbage text.
+```
+K_baked = RoPE(pos, X @ W_k)
+```
 
-### The KV-Cartridge Solution:
-1. **Pre-RoPE Capture:** During compilation, `CartridgeCompiler` intercepts raw key activations directly from `k_proj` before rotary transformation:
-   $$\mathbf{K}_{\text{raw}} = \mathbf{X} \mathbf{W}_K$$
-2. **Splice-Time Dynamic Rotation (Deferred-RoPE):** When the user prompt arrives, `CartridgeRuntime` calculates the exact sequence offset $N_{\text{prefix}}$ and dynamically applies RoPE:
-   $$\mathbf{K}_{\text{spliced}} = \mathbf{R}(N_{\text{prefix}} + i) \cdot \mathbf{K}_{\text{raw}}[i]$$
-3. **Exact Mathematical Invariance:** Attention scores between new tokens and cartridge keys are **identical** to running the full prompt from scratch, but without computing attention over the prompt tokens!
+If the prompt prefix changes, or if multiple skills are combined dynamically, the query-key dot products `(Q · K^T)` become distorted, corrupting generation output.
+
+### The Deferred-RoPE Architecture
+
+1. **Pre-RoPE Capture**: During compilation, `CartridgeCompiler` intercepts unrotated key projections directly from `k_proj` prior to the rotary embedding operation:
+   ```
+   K_raw = X @ W_k
+   ```
+
+2. **Dynamic Splice-Time Rotation**: At inference time, once the user query length `N_prefix` is established, `CartridgeRuntime` applies rotary position embeddings to the exact target range `[N_prefix, N_prefix + L_cartridge)`:
+   ```
+   K_spliced[i] = RoPE(N_prefix + i, K_raw[i])
+   ```
+
+3. **Bitwise Mathematical Equivalence**: Attention scores computed between new query tokens and spliced keys are identical to executing the entire prompt from scratch, but without computing attention over the prompt tokens.
 
 ---
 
-## 🥊 Comparison Matrix
+## Architecture Comparison
 
-| Feature | Raw In-Context Markdown | Static Prefix Cache (vLLM) | LoRA Fine-Tuning | **KV-Cartridge** |
+| Capability | In-Context Markdown | Static Prefix Caching (vLLM) | LoRA Fine-Tuning | KV-Cartridge |
 | :--- | :---: | :---: | :---: | :---: |
-| **Prefill Token Overhead** | 100% (Full Prompt) | 0% (If exact prefix hit) | 0% | **0% (Guaranteed)** |
-| **Hot-Swap Latency** | 0 µs | High (cache misses) | 100 ms – 1 s | **~15 µs** |
-| **Hardware Overhead** | Recomputes every turn | Gigabytes VRAM | Weight memory duplicate | **~10–50 MB file** |
-| **Dynamic Skill Chaining**| Append text | ❌ Cannot combine | ❌ Merge conflicts | **✅ Stack any $N$ skills** |
-| **Weight Modification** | None | None | Permanently alters weights | **None (Pure Non-Parametric)** |
+| **Prefill Token Overhead** | 100% (Full Prompt) | 0% (Exact prefix match only) | 0% | **0% (Guaranteed)** |
+| **Hot-Swap Latency** | 0 us | High (on cache misses) | 100 ms – 1 s | **~15 us** |
+| **Memory Footprint** | Recomputed every turn | Gigabytes of VRAM | Weight duplicate | **~10–50 MB file** |
+| **Dynamic Skill Chaining** | String concatenation | Not Supported | Merge conflicts | **Supported (Arbitrary N)** |
+| **Weight Modification** | None | None | Modifies weights | **None (Pure Non-Parametric)** |
 | **Catastrophic Forgetting**| N/A | N/A | High risk | **Zero Risk** |
-| **Compilation Time** | None | None | Hours/Days on GPU | **Single forward pass (<1s)** |
+| **Compilation Latency** | None | None | Hours/Days on GPU | **Single forward pass (<1s)** |
 
 ---
 
-## 🔒 Security & Verification
+## Integrity Verification
 
-Every `.safetensors` cartridge includes an embedded SHA-256 integrity hash calculated across the raw tensor buffers:
+Every `.safetensors` cartridge contains an embedded SHA-256 integrity hash calculated across the raw tensor buffers:
+
 ```python
-# Tampered or corrupted files are immediately rejected upon load:
+# Modified or corrupted cartridge binaries are immediately rejected upon load:
 try:
     cartridge = KVCartridge.load_safetensors("tampered_cartridge.safetensors")
-except ValueError as e:
-    print(e) # "SHA-256 integrity mismatch: Cartridge content was modified or corrupted."
+except ValueError as error:
+    print(error)  # "SHA-256 integrity mismatch: Cartridge content was modified or corrupted."
 ```
 
 ---
 
-## 📜 Intellectual Property & Open Core Notice
+## Intellectual Property & Open-Core Specification
 
-* **Open-Core Engine:** This repository is licensed under the **Apache License 2.0**. You are free to use, modify, and integrate the AOT KV-Cartridge compiler, format, and runtime into your applications and frameworks.
-* **Patent Status:** Key-Value Cartridge Ahead-of-Time compilation, Deferred-RoPE virtual splicing, and confidential hardware enclave habit isolation are protected under **U.S. Provisional Patent Application (Serial No. 63/921,555, Filed November 19, 2026, William Henry Getts)**.
-* **Proprietary Moat:** Hardware-isolated AMD SEV-SNP confidential enclaves, autonomous continuous self-learning loops, and enterprise multi-agent UI are retained in the commercial distribution.
+* **Open-Core Engine**: This repository is licensed under the **Apache License 2.0**. Developers and enterprises are free to use, modify, and integrate the AOT KV-Cartridge compiler, format, and runtime into applications and inference engines.
+* **Patent Status**: Key-Value Cartridge Ahead-of-Time compilation, Deferred-RoPE virtual splicing, and confidential hardware enclave habit isolation are protected under **U.S. Provisional Patent Application (Serial No. 63/921,555, Filed November 19, 2026, William Henry Getts)**.
+* **Commercial Capabilities**: Hardware-isolated AMD SEV-SNP confidential enclaves, autonomous continuous self-learning loops, and enterprise multi-agent management interfaces are retained in the commercial distribution.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Run the unit test suites to verify math and markdown parsing:
+Contributions are welcome. Run the test suite to verify mathematical invariance and format compatibility:
 ```bash
 pytest tests/
 ```
