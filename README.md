@@ -234,6 +234,27 @@ except ValueError as error:
 
 ---
 
+## Architectural Implication: Making Model Abliteration Obsolete
+
+In current open-weight language models, alignment and safety guardrails are baked directly into model weights via RLHF, DPO, or supervised fine-tuning.
+
+This parametric approach introduces a fundamental vulnerability known as **model abliteration** (Arditi et al., 2024):
+* Refusal mechanisms in open-weight models are mediated by low-rank linear directions in the weight matrices.
+* Anyone can calculate this refusal vector and subtract it from the weight tensors (`W_proj = W_proj - r @ r.T @ W_proj`), stripping guardrails in seconds without fine-tuning.
+* Adversarial fine-tuning with even a few dozen LoRA gradient steps routinely overwrites parametric safety behaviors.
+
+### Non-Parametric Alignment in Activation Space
+
+KV-Cartridge decouples behavioral policies, safety guardrails, and operational constraints from model weights entirely:
+
+1. **No Weight Vectors to Abliterate**: The base model weights remain pristine, un-lobotomized, and general-purpose. Because guardrails are not encoded in weight space, there is no weight-space refusal vector to project out or abliterate.
+2. **Cryptographic Immutability**: Behavioral policies are delivered as signed, immutable Key-Value tensor cartridges. Any unauthorized modification to the cartridge triggers an immediate SHA-256 integrity rejection before memory mounting.
+3. **Deterministic Activation Anchoring**: The cartridge is virtually spliced into the model's active KV attention cache at runtime. The attention heads attend to the immutable policy tokens with 100% adherence.
+
+If open-weight foundation models are distributed alongside cryptographically verified, immutable Key-Value cartridges, **weight-based model abliteration and alignment degradation become fundamentally obsolete**.
+
+---
+
 ## Intellectual Property & Open-Core Specification
 
 * **Open-Core Engine**: This repository is licensed under the **Apache License 2.0**. Developers and enterprises are free to use, modify, and integrate the AOT KV-Cartridge compiler, format, and runtime into applications and inference engines.
