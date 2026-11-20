@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kv-cartridge"
+version = "0.1.0"
+description = "Ahead-of-Time (AOT) Key-Value Cartridge Engine for LLM Agents: zero-token procedural habit mounting via deferred RoPE splicing."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "William Henry Getts", email = "william@continuous-learning.ai" }
+]
+keywords = [
+    "llm",
+    "kv-cache",
+    "inference",
+    "rope",
+    "transformers",
+    "safetensors",
+    "ai-agents",
+    "amd-rocm",
+    "mi300x"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.2.0",
+    "transformers>=4.40.0",
+    "safetensors>=0.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+cartridge = "kv_cartridge.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/continuous-learning/kv-cartridge"
+Repository = "https://github.com/continuous-learning/kv-cartridge"
+Documentation = "https://github.com/continuous-learning/kv-cartridge#readme"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kv_cartridge*"]
